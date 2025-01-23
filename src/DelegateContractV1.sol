@@ -16,10 +16,11 @@ contract DelegateContractV1 is ReentrancyGuard {
 
     error Unauthorized();
     error ExternalCallFailed();
+
     event Executed(address indexed to, uint256 value, bytes data);
     event NewGuardian(address indexed newGuardian);
 
-    mapping (address account => bool isGuardian) guardians;
+    mapping(address account => bool isGuardian) guardians;
 
     constructor(address[] memory newGuardians) {
         for (uint256 i = 0; i < newGuardians.length; i++) {
@@ -34,7 +35,7 @@ contract DelegateContractV1 is ReentrancyGuard {
 
         for (uint256 i = 0; i < calls.length; i++) {
             Call memory call = calls[i];
-            
+
             (bool success,) = call.to.call{value: call.value}(call.data);
             require(success, ExternalCallFailed());
 

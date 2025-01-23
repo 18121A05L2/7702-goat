@@ -21,11 +21,12 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
     error Paused();
     error SignatureExpired();
     error InvalidNonce();
+
     event Executed(address indexed to, uint256 value, bytes data);
     event NewGuardian(address indexed newGuardian);
     event Initialized();
 
-    mapping (address account => bool isGuardian) guardians;
+    mapping(address account => bool isGuardian) guardians;
     bool public paused;
     uint256 public nonce;
 
@@ -34,16 +35,21 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
         _;
     }
 
-    function initialize(address[] memory newGuardians, uint256 validUntil, uint256 _nonce, bytes memory signature) external initializer {
+    function initialize(address[] memory newGuardians, uint256 validUntil, uint256 _nonce, bytes memory signature)
+        external
+        initializer
+    {
         require(validUntil > block.timestamp, SignatureExpired());
         require(nonce == _nonce, InvalidNonce());
 
         address signer = ECDSA.recover(
-            keccak256(abi.encode(newGuardians, validUntil, _nonce, keccak256("initialize"), address(this), block.chainid)), // might as well be EIP712 structure data
+            keccak256(
+                abi.encode(newGuardians, validUntil, _nonce, keccak256("initialize"), address(this), block.chainid)
+            ), // might as well be EIP712 structure data
             signature
         );
         require(signer == address(this), Unauthorized());
-        
+
         for (uint256 i = 0; i < newGuardians.length; i++) {
             address newGuardian = newGuardians[i];
             guardians[newGuardian] = true;
@@ -72,7 +78,7 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
 
         for (uint256 i = 0; i < calls.length; i++) {
             Call memory call = calls[i];
-            
+
             (bool success,) = call.to.call{value: call.value}(call.data);
             require(success, ExternalCallFailed());
 
@@ -85,17 +91,26 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
         execute(calls);
     }
 
-    function oneTimeSend(address executor, uint256 value, uint256 _nonce, uint256 validUntil, address target, bytes memory signature) external {
+    function oneTimeSend(
+        address executor,
+        uint256 value,
+        uint256 _nonce,
+        uint256 validUntil,
+        address target,
+        bytes memory signature
+    ) external {
         require(validUntil > block.timestamp, SignatureExpired());
         require(nonce == _nonce, InvalidNonce());
 
         address signer = ECDSA.recover(
-            keccak256(abi.encode(executor, value, validUntil, _nonce, keccak256("oneTimeSend"), address(this), block.chainid)), // might as well be EIP712 structure data
+            keccak256(
+                abi.encode(executor, value, validUntil, _nonce, keccak256("oneTimeSend"), address(this), block.chainid)
+            ), // might as well be EIP712 structure data
             signature
         );
         require(signer == address(this), Unauthorized());
 
-        (bool success, ) = target.call{value: value}("");
+        (bool success,) = target.call{value: value}("");
         require(success, ExternalCallFailed());
         nonce++;
     }
