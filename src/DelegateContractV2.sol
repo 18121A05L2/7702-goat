@@ -25,16 +25,17 @@ contract DelegateContractV2 is ReentrancyGuard {
     mapping(address account => bool isGuardian) guardians;
 
     constructor() {
-        init = true;
+        init = true; // if this wasn't here, you'd be able to execute calls from the delegate contract itself
     }
 
-    function initialize(address[] memory newGuardians) external {
+    function initialize(address[] memory newGuardians) external { // can be called by anyone
         require(!init, AlreadyInitialized());
         for (uint256 i = 0; i < newGuardians.length; i++) {
             address newGuardian = newGuardians[i];
             guardians[newGuardian] = true;
             emit NewGuardian(newGuardian);
         }
+        // not setting `init` to true
     }
 
     function execute(Call[] calldata calls) public payable nonReentrant {

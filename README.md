@@ -1,8 +1,10 @@
 # EIP7702 Goat
 
-Intentionally vulnerable code with potential pitfalls in custom contracts for [EIP7702](https://eips.ethereum.org/EIPS/eip-7702) delegate accounts.
+Intentionally flawed code with potential pitfalls in custom contracts for [EIP7702](https://eips.ethereum.org/EIPS/eip-7702) delegate accounts.
 
-## Quick overview
+## Overview
+
+Contracts increase in complexity. They're meant to be studied sequentially.
 
 - `DelegateContractV0`
     - Missing `receive` function => can't receive ETH
@@ -13,7 +15,7 @@ Intentionally vulnerable code with potential pitfalls in custom contracts for [E
     - Open initialization
     - Can be reinitialized
 - `DelegateContractV3`
-    - Initialization signature may be reused in another chain.
+    - Initialization signature too weak (e.g., replayable across contracts, chains)
 - `DelegateContractV4`
     - Storage collision between `paused` and `init` if deployed as an upgrade of V3. Account may start paused and initialized.
 - `DelegateContractV5`

@@ -23,8 +23,10 @@ contract DelegateContractV1 is ReentrancyGuard {
     mapping(address account => bool isGuardian) public guardians;
 
     /**
-     * @notice Sets the initial guardians for your account
-     * @param newGuardians The guardians you'd like to set
+     * Casual readers might think this code allows accounts delegating to this contract to set their own guardians.
+     * It does not. The guardians would be set at the delegate contract deployment,
+     * and any account delegating to this contract wouldn't be able to set guardians.
+     * Because this constructor is never executed in the context of an account delegating to this contract.
      */
     constructor(address[] memory newGuardians) {
         for (uint256 i = 0; i < newGuardians.length; i++) {
@@ -35,7 +37,6 @@ contract DelegateContractV1 is ReentrancyGuard {
     }
 
     function execute(Call[] memory calls) public payable nonReentrant {
-        // prevent reentrant calls
         require(msg.sender == address(this), Unauthorized()); // access control
 
         for (uint256 i = 0; i < calls.length; i++) {
@@ -49,7 +50,6 @@ contract DelegateContractV1 is ReentrancyGuard {
     }
 
     function executeGuardian(Call[] calldata calls) external payable nonReentrant {
-        // prevent reentrant calls
         require(guardians[msg.sender], Unauthorized()); // access control
         execute(calls);
     }

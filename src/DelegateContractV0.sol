@@ -14,7 +14,7 @@ contract DelegateContractV0 {
 
     error ExternalCallFailed();
 
-    function execute(Call[] memory calls) external payable {
+    function execute(Call[] memory calls) external payable { // lack of access control
         for (uint256 i = 0; i < calls.length; i++) {
             Call memory call = calls[i];
 
@@ -22,4 +22,6 @@ contract DelegateContractV0 {
             require(success, ExternalCallFailed());
         }
     }
+
+    // no receive function nor payable fallback function
 }

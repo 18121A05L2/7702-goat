@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import {DelegateContractV3} from "../src/DelegateContractV3.sol";
-import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import {DelegateContractV3_1} from "../src/DelegateContractV3_1.sol";
 
 contract DelegateContractV3Test is Test {
     address deployer = makeAddr("deployer");
@@ -24,7 +24,7 @@ contract DelegateContractV3Test is Test {
         address[] memory guardians = new address[](1);
         guardians[0] = guardian_1;
 
-        // Alice signs initialization data for the delegate contract that doesn't include chain ID
+        // Alice signs initialization data for the delegate contract. This doesn't include chain ID.
         bytes32 hash = keccak256(abi.encode(guardians, alice.addr));
         (v, r, s) = vm.sign(alice.privateKey, hash);
     }
@@ -41,6 +41,11 @@ contract DelegateContractV3Test is Test {
         // By design, the tx can be submitted by anyone, as long as they have both signatures (one for the 7702 data and the other for initialization)
         vm.signAndAttachDelegation(address(delegateContract), alice.privateKey);
         DelegateContractV3(payable(alice.addr)).initialize(guardians, v, r, s);
+
+        // The same initialization signature can be replayed on another contract
+        DelegateContractV3_1 anotherDelegateContract = new DelegateContractV3_1();
+        vm.signAndAttachDelegation(address(anotherDelegateContract), alice.privateKey);
+        DelegateContractV3_1(payable(alice.addr)).initialize(guardians, v, r, s);
         
         assertGt(alice.addr.code.length, 0);
     }
@@ -59,6 +64,6 @@ contract DelegateContractV3Test is Test {
         guardians[0] = guardian_1;
 
         vm.signAndAttachDelegation(address(delegateContract), alice.privateKey);
-        DelegateContractV3(payable(alice.addr)).initialize(guardians, v, r, s); // the same init data is replayed
+        DelegateContractV3(payable(alice.addr)).initialize(guardians, v, r, s); // // The same initialization signature can be replayed on another chain
     }
 }

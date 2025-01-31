@@ -2,14 +2,16 @@
 pragma solidity ^0.8.20;
 
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "forge-std/console.sol";
 
 /**
  * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION.
+ * @dev A version of `DelegateContractV3` using `Initializable`
  * @author The Red Guild (@theredguild)
  */
-contract DelegateContractV3 is ReentrancyGuard {
+contract DelegateContractV3_1 is Initializable, ReentrancyGuard {
     struct Call {
         bytes data;
         address to;
@@ -23,26 +25,15 @@ contract DelegateContractV3 is ReentrancyGuard {
     event Executed(address indexed to, uint256 value, bytes data);
     event NewGuardian(address indexed newGuardian);
 
-    bool public init;
     mapping(address account => bool isGuardian) guardians;
 
     constructor() {
-        init = true; 
+        _disableInitializers();
     }
 
-    /**
-     * Note that address(this) will change depending on whether you're executing this code
-     * at the delegate contract itself, or in the context of an account delegating to it.
-     */
-    function getHash(address[] memory newGuardians) public view returns (bytes32) {
-        return keccak256(abi.encode(newGuardians, address(this)));
-    }
-
-    function initialize(address[] memory newGuardians, uint8 v, bytes32 r, bytes32 s) external {
-        require(!init, AlreadyInitialized());
-
+    function initialize(address[] memory newGuardians, uint8 v, bytes32 r, bytes32 s) external initializer {
         address signer = ECDSA.recover(
-            keccak256(abi.encode(newGuardians, address(this))), // weak signature (e.g., replayable)
+            keccak256(abi.encode(newGuardians, address(this))),
             v, r, s
         );
         require(signer == address(this), Unauthorized());
@@ -52,8 +43,6 @@ contract DelegateContractV3 is ReentrancyGuard {
             guardians[newGuardian] = true;
             emit NewGuardian(newGuardian);
         }
-
-        init = true;
     }
 
     function execute(Call[] memory calls) public payable nonReentrant {

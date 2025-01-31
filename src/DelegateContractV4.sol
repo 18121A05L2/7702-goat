@@ -2,13 +2,14 @@
 pragma solidity ^0.8.20;
 
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION.
  * @author The Red Guild (@theredguild)
  */
-contract DelegateContractV4 is ReentrancyGuard {
+contract DelegateContractV4 is Initializable, ReentrancyGuard { // Now this is Initializable
     struct Call {
         bytes data;
         address to;
@@ -23,10 +24,10 @@ contract DelegateContractV4 is ReentrancyGuard {
 
     event Executed(address indexed to, uint256 value, bytes data);
     event NewGuardian(address indexed newGuardian);
-    event Initialized();
 
-    bool public paused;
-    bool public init;
+    address immutable _DELEGATE_CONTRACT_ADDRESS;
+
+    bool public paused; // paused took the place of `DelegateContractV3::init`
     mapping(address account => bool isGuardian) guardians;
 
     modifier whenNotPaused() {
@@ -39,15 +40,20 @@ contract DelegateContractV4 is ReentrancyGuard {
         _;
     }
 
+    constructor() {
+        _DELEGATE_CONTRACT_ADDRESS = address(this);
+    }
+
     function initialize(address[] memory newGuardians, uint256 validUntil, bytes memory signature)
         external
+        initializer
+        whenNotPaused
         notExpired(validUntil)
     {
-        require(!init, AlreadyInitialized());
         require(validUntil > block.timestamp, SignatureExpired());
 
         address signer = ECDSA.recover(
-            keccak256(abi.encode(newGuardians, validUntil, keccak256("initialize"), address(this), block.chainid)), // might as well be EIP712 structure data
+            keccak256(abi.encode(newGuardians, validUntil, keccak256("initialize"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)), // might as well be EIP712 structure data
             signature
         );
         require(signer == address(this), Unauthorized());
@@ -57,17 +63,14 @@ contract DelegateContractV4 is ReentrancyGuard {
             guardians[newGuardian] = true;
             emit NewGuardian(newGuardian);
         }
-
-        init = true;
-        emit Initialized();
     }
 
     function setPause(bool _paused, uint256 validUntil, bytes memory signature) external notExpired(validUntil) {
         address signer = ECDSA.recover(
-            keccak256(abi.encode(_paused, validUntil, keccak256("setPause"), address(this), block.chainid)), // might as well be EIP712 structure data
+            keccak256(abi.encode(_paused, validUntil, keccak256("setPause"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)), // might as well be EIP712 structure data
             signature
         );
-        require(signer == address(this), Unauthorized());
+        require(guardians[signer], Unauthorized());
 
         paused = _paused;
     }
