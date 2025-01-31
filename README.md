@@ -8,7 +8,7 @@ Intentionally vulnerable code with potential pitfalls in custom contracts for [E
     - Missing `receive` function => can't receive ETH
     - Lack of access controls in execute => anyone can execute calls
 - `DelegateContractV1`
-    - Deceiving `constructor`. Guardians are not set in the context of accounts delegating to contract. Accounts delegating to this contract share guardians.
+    - Deceiving `constructor`. Guardians are not set in the context of accounts delegating to `DelegateContractV1`.
 - `DelegateContractV2`
     - Initialization can be frontrun
     - Can be reinitialized
