@@ -7,7 +7,7 @@ import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.s
 
 /**
  * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION.
- * @author The Red Guild
+ * @author The Red Guild (@theredguild)
  */
 contract DelegateContractV5 is Initializable, ReentrancyGuard {
     struct Call {

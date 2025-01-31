@@ -1,5 +1,4 @@
 {
-  "name": "TRG's DevContainer",
   "build": {
     "dockerfile": "Dockerfile"
   },

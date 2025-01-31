@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 /**
- * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION. DO NOT USE IN PRODUCTION.
- * @author The Red Guild
+ * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION.
+ * @author The Red Guild (@theredguild)
  */
 contract DelegateContractV0 {
     struct Call {

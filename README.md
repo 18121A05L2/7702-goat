@@ -5,11 +5,10 @@ Intentionally vulnerable code with potential pitfalls in custom contracts for [E
 ## Quick overview
 
 - `DelegateContractV0`
-    - Missing `receive` function
+    - Missing `receive` function => can't receive ETH
     - Lack of access controls in execute => anyone can execute calls
-    - Allows reentrant calls
 - `DelegateContractV1`
-    - Uses `constructor` instead of initialization function => cannot set guardians
+    - Deceiving `constructor`. Guardians are not set in the context of accounts delegating to contract. Accounts delegating to this contract share guardians.
 - `DelegateContractV2`
     - Initialization can be frontrun
     - Can be reinitialized

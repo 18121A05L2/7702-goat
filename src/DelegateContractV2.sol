@@ -5,7 +5,7 @@ import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/Reentrancy
 
 /**
  * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION.
- * @author The Red Guild
+ * @author The Red Guild (@theredguild)
  */
 contract DelegateContractV2 is ReentrancyGuard {
     struct Call {
