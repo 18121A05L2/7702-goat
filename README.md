@@ -14,7 +14,7 @@ Contracts increase in complexity. They're meant to be studied sequentially.
 - `DelegateContractV2`
     - Open initialization
     - Can be reinitialized
-- `DelegateContractV3`
+- `DelegateContractV3` and `DelegateContractV3_1`
     - Initialization signature too weak (e.g., replayable across contracts, chains)
 - `DelegateContractV4`
     - Storage collision between `paused` and `init` if deployed as an upgrade of V3. Account may start paused and initialized.
