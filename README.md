@@ -10,7 +10,7 @@ Intentionally vulnerable code with potential pitfalls in custom contracts for [E
 - `DelegateContractV1`
     - Deceiving `constructor`. Guardians are not set in the context of accounts delegating to `DelegateContractV1`.
 - `DelegateContractV2`
-    - Initialization can be frontrun
+    - Open initialization
     - Can be reinitialized
 - `DelegateContractV3`
     - Initialization signature may be reused in another chain.

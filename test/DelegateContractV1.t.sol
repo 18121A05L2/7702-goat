@@ -36,7 +36,7 @@ contract DelegateContractV1Test is Test {
     function test_noGuardiansInAccounts() public {
         vm.signAndAttachDelegation(address(delegateContract), alice.privateKey);
         vm.signAndAttachDelegation(address(delegateContract), bob.privateKey);
-        address(0).call("");
+        address(0).call(""); // by design, anyone with the signed authorizations can attach and submit the tx
 
         assertGt(alice.addr.code.length, 0);
         assertGt(bob.addr.code.length, 0);

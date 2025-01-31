@@ -24,6 +24,10 @@ contract DelegateContractV2 is ReentrancyGuard {
     bool public init;
     mapping(address account => bool isGuardian) guardians;
 
+    constructor() {
+        init = true;
+    }
+
     function initialize(address[] memory newGuardians) external {
         require(!init, AlreadyInitialized());
         for (uint256 i = 0; i < newGuardians.length; i++) {
@@ -33,9 +37,17 @@ contract DelegateContractV2 is ReentrancyGuard {
         }
     }
 
-    function execute(Call[] memory calls) public payable nonReentrant {
+    function execute(Call[] calldata calls) public payable nonReentrant {
         require(msg.sender == address(this), Unauthorized());
+        _execute(calls);
+    }
 
+    function executeGuardian(Call[] calldata calls) external payable nonReentrant {
+        require(guardians[msg.sender], Unauthorized());
+        _execute(calls);
+    }
+
+    function _execute(Call[] calldata calls) private {
         for (uint256 i = 0; i < calls.length; i++) {
             Call memory call = calls[i];
 
@@ -44,11 +56,6 @@ contract DelegateContractV2 is ReentrancyGuard {
 
             emit Executed(call.to, call.value, call.data);
         }
-    }
-
-    function executeGuardian(Call[] calldata calls) external payable nonReentrant {
-        require(guardians[msg.sender], Unauthorized());
-        execute(calls);
     }
 
     receive() external payable {}
