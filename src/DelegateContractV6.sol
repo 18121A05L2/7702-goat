@@ -3,13 +3,14 @@ pragma solidity ^0.8.20;
 
 import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {Pausable} from "openzeppelin-contracts/contracts/utils/Pausable.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @notice VULNERABLE, UNAUDITED CODE. DO NOT USE IN PRODUCTION.
  * @author The Red Guild (@theredguild)
  */
-contract DelegateContractV5 is Initializable, ReentrancyGuard {
+contract DelegateContractV6 is Initializable, ReentrancyGuard, Pausable {
     struct Call {
         bytes data;
         address to;
@@ -18,35 +19,56 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
 
     error Unauthorized();
     error ExternalCallFailed();
-    error Paused();
     error SignatureExpired();
     error InvalidNonce();
 
     event Executed(address indexed to, uint256 value, bytes data);
     event NewGuardian(address indexed newGuardian);
-    event Initialized();
+    event Cleaned(uint256 slot);
 
-    mapping(address account => bool isGuardian) guardians;
-    bool public paused;
+    address immutable _DELEGATE_CONTRACT_ADDRESS;
+
+    mapping(address account => bool isGuardian) public guardians;
     uint256 public nonce;
 
-    modifier whenNotPaused() {
-        require(!paused, Paused());
+    modifier notExpired(uint256 validUntil) {
+        require(validUntil > block.timestamp, SignatureExpired());
         _;
     }
 
-    function initialize(address[] memory newGuardians, uint256 validUntil, uint256 _nonce, bytes memory signature)
-        external
-        initializer
-    {
-        require(validUntil > block.timestamp, SignatureExpired());
+    modifier checkNonce(uint256 _nonce) {
         require(nonce == _nonce, InvalidNonce());
+        _;
+    }
+
+    constructor() {
+        _DELEGATE_CONTRACT_ADDRESS = address(this);
+        _disableInitializers();
+    }
+
+    function _cleanStorage(uint256[] memory slots) private onlyInitializing {
+        for (uint256 i = 0; i < slots.length; i++) {
+            uint256 slot = slots[i];
+            assembly {
+                sstore(slot, 0)
+            }
+            emit Cleaned(slot);
+        }
+    }
+
+    function initialize(address[] memory newGuardians, uint256[] memory slotsToClean, uint256 validUntil, uint256 _nonce, uint8 v, bytes32 r, bytes32 s)
+        external
+        reinitializer(6)
+        notExpired(validUntil)
+        checkNonce(_nonce)
+    {
+        _cleanStorage(slotsToClean);
 
         address signer = ECDSA.recover(
             keccak256(
-                abi.encode(newGuardians, validUntil, _nonce, keccak256("initialize"), address(this), block.chainid)
-            ), // might as well be EIP712 structure data
-            signature
+                abi.encode(newGuardians, slotsToClean, validUntil, _nonce, keccak256("initialize"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)
+            ),
+            v, r, s
         );
         require(signer == address(this), Unauthorized());
 
@@ -59,18 +81,24 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
         nonce++;
     }
 
-    function setPause(bool _paused, uint256 validUntil, uint256 _nonce, bytes memory signature) external {
-        require(validUntil > block.timestamp, SignatureExpired());
-        require(nonce == _nonce, InvalidNonce());
-
+    function setPause(bool pause, uint256 validUntil, uint256 _nonce, uint8 v, bytes32 r, bytes32 s)
+        external
+        notExpired(validUntil)
+        checkNonce(_nonce)
+    {
         address signer = ECDSA.recover(
-            keccak256(abi.encode(_paused, validUntil, _nonce, keccak256("setPause"), address(this), block.chainid)), // might as well be EIP712 structure data
-            signature
+            keccak256(abi.encode(pause, validUntil, _nonce, keccak256("setPause"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)),
+            v, r, s
         );
         require(signer == address(this), Unauthorized());
 
-        paused = _paused;
         nonce++;
+
+        if(pause) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     function execute(Call[] memory calls) public payable nonReentrant whenNotPaused {
@@ -92,27 +120,32 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
     }
 
     function oneTimeSend(
-        address executor,
         uint256 value,
         uint256 _nonce,
         uint256 validUntil,
         address target,
-        bytes memory signature
-    ) external {
-        require(validUntil > block.timestamp, SignatureExpired());
-        require(nonce == _nonce, InvalidNonce());
-
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        external
+        notExpired(validUntil)
+        nonReentrant
+        whenNotPaused
+        checkNonce(_nonce)
+    {
         address signer = ECDSA.recover(
             keccak256(
-                abi.encode(executor, value, validUntil, _nonce, keccak256("oneTimeSend"), address(this), block.chainid)
-            ), // might as well be EIP712 structure data
-            signature
+                abi.encode(msg.sender, value, validUntil, target, _nonce, keccak256("oneTimeSend"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)
+            ),
+            v, r, s
         );
         require(signer == address(this), Unauthorized());
 
+        nonce++;
+
         (bool success,) = target.call{value: value}("");
         require(success, ExternalCallFailed());
-        nonce++;
     }
 
     receive() external payable {}

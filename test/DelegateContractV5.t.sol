@@ -13,15 +13,14 @@ contract DelegateContractV5Test is Test {
     DelegateContractV5 delegateContractV5;
 
     function setUp() public {
-        vm.startPrank(deployer);
+        vm.prank(deployer);
         delegateContractV5 = new DelegateContractV5();
-        vm.stopPrank();
 
         // Alice's account has no code
         require(alice.addr.code.length == 0);
     }
 
-    function test_oneTimeSend() public {
+    function test_oneTimeSendCanBeReplayed() public {
         vm.deal(alice.addr, 1 ether);
 
         address[] memory guardians = new address[](1);
@@ -29,7 +28,9 @@ contract DelegateContractV5Test is Test {
 
         uint256 validUntil = block.timestamp + 1 days;
 
-        bytes32 hash = keccak256(abi.encode(guardians, validUntil, keccak256("initialize"), address(delegateContractV5), block.chainid));
+        bytes32 hash = keccak256(abi.encode(
+            guardians, validUntil, keccak256("initialize"), address(delegateContractV5), block.chainid)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(alice.privateKey, hash);
 
         vm.signAndAttachDelegation(address(delegateContractV5), alice.privateKey);
@@ -38,15 +39,24 @@ contract DelegateContractV5Test is Test {
             validUntil,
             v, r, s
         );
+        require(alice.addr.code.length > 0);
 
         address oneTimeSender = makeAddr("oneTimeSender");
         address receiver = makeAddr("receiver");
         uint256 amount = 0.1 ether;
 
-        hash = keccak256(abi.encode(oneTimeSender, amount, validUntil, receiver, keccak256("oneTimeSend"), address(delegateContractV5), block.chainid));
+        hash = keccak256(abi.encode(
+            oneTimeSender,
+            amount,
+            validUntil,
+            receiver,
+            keccak256("oneTimeSend"),
+            address(delegateContractV5),
+            block.chainid
+        ));
         (v, r, s) = vm.sign(alice.privateKey, hash);
 
-        // Alice's signature is replayable on this contract because there's no nonce mechanism
+        // Alice's signature is replayable as long as it's not expired on this contract, because there's no nonce mechanism
         vm.startPrank(oneTimeSender);
         for(uint256 i = 0; i < 10; i++) {
             DelegateContractV5(payable(alice.addr)).oneTimeSend(

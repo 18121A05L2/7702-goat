@@ -63,7 +63,10 @@ contract DelegateContractV5 is Initializable, ReentrancyGuard {
         }
     }
 
-    function setPause(bool _paused, uint256 validUntil, uint8 v, bytes32 r, bytes32 s) external notExpired(validUntil) {
+    function setPause(bool _paused, uint256 validUntil, uint8 v, bytes32 r, bytes32 s)
+        external
+        notExpired(validUntil)
+    {
         address signer = ECDSA.recover(
             keccak256(abi.encode(_paused, validUntil, keccak256("setPause"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)),
             v, r, s
