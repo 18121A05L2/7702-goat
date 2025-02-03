@@ -22,7 +22,7 @@ contract DelegateContractV2 is ReentrancyGuard {
     event NewGuardian(address indexed newGuardian);
 
     bool public init;
-    mapping(address account => bool isGuardian) guardians;
+    mapping(address account => bool isGuardian) public guardians;
 
     constructor() {
         init = true; // if this wasn't here, you'd be able to execute calls from the delegate contract itself

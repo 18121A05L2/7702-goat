@@ -27,8 +27,8 @@ contract DelegateContractV4 is Initializable, ReentrancyGuard { // Now this is I
 
     address immutable _DELEGATE_CONTRACT_ADDRESS;
 
-    bool public paused; // paused took the place of `DelegateContractV3::init`
-    mapping(address account => bool isGuardian) guardians;
+    bool public paused; // `paused` took the place of `DelegateContractV3::init`
+    mapping(address account => bool isGuardian) public guardians;
 
     modifier whenNotPaused() {
         require(!paused, Paused());
@@ -42,19 +42,18 @@ contract DelegateContractV4 is Initializable, ReentrancyGuard { // Now this is I
 
     constructor() {
         _DELEGATE_CONTRACT_ADDRESS = address(this);
+        _disableInitializers();
     }
 
-    function initialize(address[] memory newGuardians, uint256 validUntil, bytes memory signature)
+    function initialize(address[] memory newGuardians, uint256 validUntil, uint8 v, bytes32 r, bytes32 s)
         external
         initializer
         whenNotPaused
         notExpired(validUntil)
     {
-        require(validUntil > block.timestamp, SignatureExpired());
-
         address signer = ECDSA.recover(
             keccak256(abi.encode(newGuardians, validUntil, keccak256("initialize"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)), // might as well be EIP712 structure data
-            signature
+            v, r, s
         );
         require(signer == address(this), Unauthorized());
 
@@ -65,10 +64,10 @@ contract DelegateContractV4 is Initializable, ReentrancyGuard { // Now this is I
         }
     }
 
-    function setPause(bool _paused, uint256 validUntil, bytes memory signature) external notExpired(validUntil) {
+    function setPause(bool _paused, uint256 validUntil, uint8 v, bytes32 r, bytes32 s) external notExpired(validUntil) {
         address signer = ECDSA.recover(
             keccak256(abi.encode(_paused, validUntil, keccak256("setPause"), _DELEGATE_CONTRACT_ADDRESS, block.chainid)), // might as well be EIP712 structure data
-            signature
+            v, r, s
         );
         require(guardians[signer], Unauthorized());
 

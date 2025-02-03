@@ -24,7 +24,7 @@ contract DelegateContractV3 is ReentrancyGuard {
     event NewGuardian(address indexed newGuardian);
 
     bool public init;
-    mapping(address account => bool isGuardian) guardians;
+    mapping(address account => bool isGuardian) public guardians;
 
     constructor() {
         init = true; 
