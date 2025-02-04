@@ -1,6 +1,8 @@
 # EIP7702 Goat
 
-Intentionally flawed code with potential pitfalls in custom contracts for [EIP7702](https://eips.ethereum.org/EIPS/eip-7702) delegate accounts.
+Intentionally flawed code with potential pitfalls in custom contracts for [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) delegate accounts.
+
+Use this repository to learn about 7702 in a practical way. Tweak the contracts and tests, extend them, try out newer and more complex implementations. Whatever you want - except deploying them to prod.
 
 ## Overview
 
@@ -23,8 +25,18 @@ Contracts increase in complexity. They're meant to be studied sequentially.
 - `DelegateContractV6`
     - Anything bad here?
 
+## What else?
+
+We might extend this repository with flawed cases of:
+
+- Interactions with the [ERC4337 entrypoint](https://eips.ethereum.org/EIPS/eip-4337)
+- New signature schemes (such as [WebAuthn](https://github.com/Vectorized/solady/blob/main/src/utils/WebAuthn.sol))
+- Standard batch execution interfaces (like [EIP-7821](https://eips.ethereum.org/EIPS/eip-7821))
+
 ## Resources
 
+- [EIP-7702: set EOA account code](https://eips.ethereum.org/EIPS/eip-7702)
+- [EIP-7821: minimal batch executor interface](https://eips.ethereum.org/EIPS/eip-7821)
 - [github.com/ithacaxyz/odyssey-examples](https://github.com/ithacaxyz/odyssey-examples)
 - [EIP-7702: a technical deep dive by lightclient](https://www.youtube.com/watch?v=_k5fKlKBWV4)
 - [ithaca.xyz/writings/exp-0001](https://www.ithaca.xyz/writings/exp-0001)
