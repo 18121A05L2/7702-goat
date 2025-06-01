@@ -38,38 +38,37 @@ contract DelegateContractV4Test is Test {
 
         /**
          * The storage layout of DelegateContractV3 is as follows:
-         * 
+         *
          * forge inspect DelegateContractV3 storageLayout
-            ╭-----------+--------------------------+------+--------+-------+-----------------------------------------------╮
-            | Name      | Type                     | Slot | Offset | Bytes | Contract                                      |
-            +==============================================================================================================+
-            | _status   | uint256                  | 0    | 0      | 32    | src/DelegateContractV3.sol:DelegateContractV3 |
-            |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
-            | init      | bool                     | 1    | 0      | 1     | src/DelegateContractV3.sol:DelegateContractV3 |
-            |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
-            | guardians | mapping(address => bool) | 2    | 0      | 32    | src/DelegateContractV3.sol:DelegateContractV3 |
-            ╰-----------+--------------------------+------+--------+-------+-----------------------------------------------╯
+         *         ╭-----------+--------------------------+------+--------+-------+-----------------------------------------------╮
+         *         | Name      | Type                     | Slot | Offset | Bytes | Contract                                      |
+         *         +==============================================================================================================+
+         *         | _status   | uint256                  | 0    | 0      | 32    | src/DelegateContractV3.sol:DelegateContractV3 |
+         *         |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
+         *         | init      | bool                     | 1    | 0      | 1     | src/DelegateContractV3.sol:DelegateContractV3 |
+         *         |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
+         *         | guardians | mapping(address => bool) | 2    | 0      | 32    | src/DelegateContractV3.sol:DelegateContractV3 |
+         *         ╰-----------+--------------------------+------+--------+-------+-----------------------------------------------╯
          */
 
         // Alice moves to V4
         vm.signAndAttachDelegation(address(delegateContractV4), alice.privateKey);
-        address(0).call("");
 
         /**
          * The storage layout of DelegateContractV4 is as follows:
-
+         *
          * forge inspect DelegateContractV4 storageLayout
-            ╭-----------+--------------------------+------+--------+-------+-----------------------------------------------╮
-            | Name      | Type                     | Slot | Offset | Bytes | Contract                                      |
-            +==============================================================================================================+
-            | _status   | uint256                  | 0    | 0      | 32    | src/DelegateContractV4.sol:DelegateContractV4 |
-            |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
-            | paused    | bool                     | 1    | 0      | 1     | src/DelegateContractV4.sol:DelegateContractV4 |
-            |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
-            | guardians | mapping(address => bool) | 2    | 0      | 32    | src/DelegateContractV4.sol:DelegateContractV4 |
-            ╰-----------+--------------------------+------+--------+-------+-----------------------------------------------╯
+         *         ╭-----------+--------------------------+------+--------+-------+-----------------------------------------------╮
+         *         | Name      | Type                     | Slot | Offset | Bytes | Contract                                      |
+         *         +==============================================================================================================+
+         *         | _status   | uint256                  | 0    | 0      | 32    | src/DelegateContractV4.sol:DelegateContractV4 |
+         *         |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
+         *         | paused    | bool                     | 1    | 0      | 1     | src/DelegateContractV4.sol:DelegateContractV4 |
+         *         |-----------+--------------------------+------+--------+-------+-----------------------------------------------|
+         *         | guardians | mapping(address => bool) | 2    | 0      | 32    | src/DelegateContractV4.sol:DelegateContractV4 |
+         *         ╰-----------+--------------------------+------+--------+-------+-----------------------------------------------╯
          */
-        
+
         // Slot 0 continues to be ReentrancyGuard::_status
         assertEq(vm.load(alice.addr, 0), bytes32(0));
 

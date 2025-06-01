@@ -40,8 +40,6 @@ contract DelegateContractV0Test is Test {
         calls[0] = DelegateContractV0.Call({data: "", to: bob.addr, value: alice.addr.balance});
 
         vm.signAndAttachDelegation(address(delegateContract), alice.privateKey);
-        (bool success,) = address(0).call(""); // execute a call to submit the delegation tx
-        require(success);
 
         assertGt(alice.addr.code.length, 0);
 

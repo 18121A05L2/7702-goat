@@ -26,8 +26,6 @@ contract DelegateContractV2Test is Test {
         vm.deal(alice.addr, 1 ether);
 
         vm.signAndAttachDelegation(address(delegateContract), alice.privateKey);
-        vm.prank(alice.addr); // not needed to be alice herself - by design, anyone with the signed authorization can attach and submit
-        address(0).call("");
 
         assertGt(alice.addr.code.length, 0);
 
